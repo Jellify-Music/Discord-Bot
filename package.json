@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "patch-package": "^8.0.1"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -14,6 +15,8 @@
     "internetarchive-sdk-js": "^1.0.45"
   },
   "scripts": {
-    "start": "bun run index.ts"
-  }
+    "start": "bun run index.ts",
+    "patch-package": "patch-package"
+  },
+  "postinstall": "patch-package"
 }

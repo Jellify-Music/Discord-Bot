@@ -31,5 +31,11 @@ A bot for monitoring and supporting the Jellify Discord server
 - [internetarchive-sdk-js](https://www.npmjs.com/package/internetarchive-sdk-js)
 - [bun](https://bun.sh/)
 
----
-PRs welcome!
+## How `/gd-history` Works
+- The `/gd-history` command fetches a random Grateful Dead show that happened on today's month and day, across all years of the band's history (1965–1995).
+- It uses the Internet Archive API to search for shows by date, looping through each year and collecting all matching shows.
+- The result is formatted with a clean date and a direct link to the archive.org page for the show.
+
+## Special Thanks
+- To the Grateful Dead, their crew, and the audience members that archived these shows for us all to enjoy, even years later. ✨
+- To the [Internet Archive](https://archive.org/) — without their incredible preservation work, this functionality (and so much more) would not exist!

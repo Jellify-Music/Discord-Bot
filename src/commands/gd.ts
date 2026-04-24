@@ -8,42 +8,46 @@ async function fetchGDShow(): Promise<string> {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   const ia = new InternetArchive();
-  let items;
-  try {
-    items = await ia.getItems({
-      filters: {
-        collection: "GratefulDead",
-      },
-      options: {
-        rows: 5000,
-        fields: "identifier,date",
+  let allDocs: any[] = [];
+  // Loop through all years of the Grateful Dead (1965-1995)
+  for (let year = 1965; year <= 1995; year++) {
+    try {
+      const items = await ia.getItems({
+        filters: {
+          collection: "etree",
+          creator: "Grateful Dead",
+          year: String(year),
+          month,
+          day
+        },
+        options: {
+          rows: 100,
+          fields: "identifier,date",
+        }
+      });
+      if (items?.response?.docs && Array.isArray(items.response.docs)) {
+        allDocs.push(...items.response.docs);
       }
-    });
-  } catch (e) {
-    return "Could not fetch shows from archive.org.";
+    } catch (e) {
+      // Ignore errors for years with no shows
+    }
   }
-  if (!items?.response?.docs || !Array.isArray(items.response.docs)) {
-    return "No Grateful Dead shows found (bad response).";
-  }
-
-  // Debug response structure
-  console.log("Archive.org response:", JSON.stringify(items, null, 2));
-
-  // Filter for shows matching today's MM-DD
-  const docs = items.response.docs.filter((doc: any) => {
-    if (!doc.date) return false;
-    const parts = doc.date.split("-");
-    return parts[1] === month && parts[2] === day;
-  });
-  if (!docs.length) return `No Grateful Dead shows found for today (${month}-${day}).`;
+  if (!allDocs.length) return `No Grateful Dead shows found for today (${month}-${day}) in any year.`;
   // Pick a random show from the list
-  const show = docs[Math.floor(Math.random() * docs.length)];
-
+  const show = allDocs[Math.floor(Math.random() * allDocs.length)];
   if (show) {
     const showDate = show.date || "Unknown date";
     const identifier = show.identifier;
     const showUrl = `https://archive.org/details/${identifier}`;
-    return `On this day in Grateful Dead history: (${showDate}): ${showUrl}`;
+    // Format date as Month Day, Year
+    let formattedDate = showDate;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(showDate)) {
+      const [y, m, d] = showDate.split("-");
+      // Use UTC to avoid timezone offset
+      const dateObj = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+      formattedDate = dateObj.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+    }
+    return `**On This Day in Grateful Dead History**\n\n**Date:** ${formattedDate}\n[Listen on Archive.org](${showUrl})`;
   } else {
     return "No Grateful Dead shows found for today.";
   }

@@ -1,0 +1,63 @@
+diff --git a/node_modules/internetarchive-sdk-js/dist/index.js b/node_modules/internetarchive-sdk-js/dist/index.js
+index e5e309c..2e1b474 100644
+--- a/node_modules/internetarchive-sdk-js/dist/index.js
++++ b/node_modules/internetarchive-sdk-js/dist/index.js
+@@ -89,22 +89,29 @@ class InternetArchive {
+     async getItems(items) {
+         const { filters, options } = items || {};
+         const { fields, rows } = options ?? {};
++        const { year, month, day } = filters ?? {};
++        let q = filters?.collection && filters?.subject && filters?.creator
++            ? `collection:(${filters?.collection}) AND subject:(${filters?.subject}) AND creator:(${filters?.creator})`
++            : filters?.collection && filters?.subject
++                ? `collection:(${filters.collection}) AND subject:(${filters.subject})`
++                : filters?.collection && filters?.creator
++                    ? `collection:(${filters.collection}) AND creator:(${filters.creator})`
++                    : filters?.subject && filters?.creator
++                        ? `subject:(${filters.subject}) AND creator:(${filters.creator})`
++                        : filters?.collection
++                            ? `collection:(${filters.collection})`
++                            : filters?.subject
++                                ? `subject:(${filters.subject})`
++                                : filters?.creator
++                                    ? `creator:(${filters.creator})`
++                                    : null;
++        if (year && month && day) {
++            q += ` AND date:${year}-${month}-${day}`;
++        } else if (month && day) {
++            q += ` AND date:*-${month}-${day}`;
++        }
+         const params = {
+-            'q': filters?.collection && filters?.subject && filters?.creator
+-                ? `collection:(${filters?.collection}) AND subject:(${filters?.subject}) AND creator:(${filters?.creator})`
+-                : filters?.collection && filters?.subject
+-                    ? `collection:(${filters.collection}) AND subject:(${filters.subject})`
+-                    : filters?.collection && filters?.creator
+-                        ? `collection:(${filters.collection}) AND creator:(${filters.creator})`
+-                        : filters?.subject && filters?.creator
+-                            ? `subject:(${filters.subject}) AND creator:(${filters.creator})`
+-                            : filters?.collection
+-                                ? `collection:(${filters.collection})`
+-                                : filters?.subject
+-                                    ? `subject:(${filters.subject})`
+-                                    : filters?.creator
+-                                        ? `creator:(${filters.creator})`
+-                                        : null,
++            'q': q,
+             ...(fields && { 'fl[]': fields.replace(/ /g, '') }),
+             'rows': Number(rows) || 50,
+             'output': 'json',
+diff --git a/node_modules/internetarchive-sdk-js/dist/types.d.ts b/node_modules/internetarchive-sdk-js/dist/types.d.ts
+index 5f2117e..507732d 100644
+--- a/node_modules/internetarchive-sdk-js/dist/types.d.ts
++++ b/node_modules/internetarchive-sdk-js/dist/types.d.ts
+@@ -32,6 +32,9 @@ export interface GetItemsParams {
+         collection?: string;
+         subject?: string;
+         creator?: string;
++        month?: string;
++        day?: string;
++        year?: string;
+     };
+     options?: {
+         fields?: string;

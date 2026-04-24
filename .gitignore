@@ -205,3 +205,5 @@ cython_debug/
 node_modules/
 dist/
 bun.lockb
+yarn.lock
+package-lock.json
