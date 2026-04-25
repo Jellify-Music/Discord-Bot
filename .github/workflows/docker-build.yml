@@ -25,7 +25,7 @@ jobs:
 
       - name: set lower case owner name
         run: |
-            echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+            echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
         env:
             OWNER: '${{ github.repository_owner }}'
 
@@ -35,4 +35,4 @@ jobs:
           context: ./Discord-Bot
           file: ./Discord-Bot/Dockerfile
           push: true
-          tags: ghcr.io/${{ OWNER_LC }}/discord-bot:latest
+          tags: ghcr.io/${{ env.OWNER_LC }}/discord-bot:latest
