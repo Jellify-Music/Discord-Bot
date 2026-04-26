@@ -3,7 +3,9 @@ import type { SlashCommand } from "../types/command";
 import { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandStringOption } from "discord.js";
 import type { ChatCompletionSystemMessageParam } from "openai/resources";
 
-async function fetchChatResponse(message: string) : Promise<string> {
+async function fetchChatResponse(
+    interaction: ChatInputCommandInteraction
+) : Promise<string> {
 
     // Build OpenAI client
     const openai = new OpenAI({
@@ -18,19 +20,31 @@ async function fetchChatResponse(message: string) : Promise<string> {
             content: prompt
         })) ?? []
 
+    const systemPrompts : ChatCompletionSystemMessageParam[]= [
+        {
+            role: 'system',
+            content: `You are currently running as a bot in a Discord Server called ${interaction.guild?.name ?? 'Unknown'}`
+        },
+        {
+            role: 'system',
+            content: `Your name is ${interaction.client.user?.username ?? 'unknown'}.`
+        },
+        {
+            role: 'system',
+            content: `If requested to ping or mention, you should do so using the appropriate Discord syntax. For example, to mention a user with ID 123456789, you would use <@123456789>. To mention a role with ID 987654321, you would use <@&987654321>. To mention a channel with ID 555555555, you would use <#555555555>.`
+        },
+        ...additionalSystemPrompts
+    ]
+
     const chatResponse = await openai.chat.completions.create({
         model: process.env.OPENAI_MODEL ?? 'gpt-5.4-mini',
-        messages: [
-            {
-                role: 'system',
-                content: 'You are currently running as a bot in a Discord Server'
-            },
-            ...additionalSystemPrompts,
+        messages: ([
+            ...systemPrompts,
             {
                 role: 'user',
-                content: message
+                content: interaction.options.getString('message', true)
             }
-        ]
+        ])
     })
 
     return chatResponse.choices[0]?.message.content?.trim() ?? 
@@ -49,7 +63,7 @@ const chatCommand: SlashCommand = {
         ),
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply()
-        const response = await fetchChatResponse(interaction.options.getString('message', true))
+        const response = await fetchChatResponse(interaction)
         await interaction.followUp(response)
     }
 }
