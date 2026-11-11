@@ -64,7 +64,6 @@ async function fetchChatResponse(
 }
 
 const chatCommand: SlashCommand = {
-    //@ts-expect-error
     data: new SlashCommandBuilder()
         .setName('chat')
         .setDescription('Chat with the bot')
