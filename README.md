@@ -7,7 +7,7 @@ A bot for monitoring and supporting the Jellify Discord server
 - Modular slash command system (add commands in `src/commands`)
 - `/ping` — Replies with Pong!
 - `/gd-history` — Fetches a random Grateful Dead show from today's date on archive.org
-- `/issue search` / `/issue create` — Searches for or creates issues on GitHub (enabled when `GITHUB_TOKEN` is set)
+- `/issue search` / `/issue create` — Searches for or creates issues on GitHub (enabled when `GITHUB_TOKEN` is set; set `GITHUB_ISSUE_CREATOR_ROLE_ID` to restrict creating issues to a role)
 
 ## Setup
 1. Install dependencies:

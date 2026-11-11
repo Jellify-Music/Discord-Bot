@@ -1,6 +1,8 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { createIssueOnGithub, searchIssuesOnGithub } from "./issue";
+import { buildErrorEmbed } from "./utils/embed";
 import type { SlashCommand } from "../../types/command";
+import { canCreateIssue } from "./utils/permissions";
 
 /**
  * Handles the `/issue` command for searching and creating GitHub issues.
@@ -38,9 +40,19 @@ export const issueCommand: SlashCommand = {
                 )
         ),
     async execute(interaction: ChatInputCommandInteraction) {
+        const isCreate = interaction.options.getSubcommand() === 'create'
+
+        if (isCreate && !canCreateIssue(interaction)) {
+            await interaction.reply({
+                embeds: [buildErrorEmbed("Sorry! You don't have permission to create issues.")],
+                flags: MessageFlags.Ephemeral
+            });
+            return
+        }
+
         await interaction.deferReply();
 
-        const embed = interaction.options.getSubcommand() === 'create'
+        const embed = isCreate
             ? await createIssueOnGithub(
                 interaction.options.getString('title', true),
                 interaction.options.getString('description'),

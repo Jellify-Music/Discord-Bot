@@ -1,5 +1,5 @@
-import { afterAll, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { EmbedBuilder } from "discord.js";
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { Colors, EmbedBuilder, MessageFlags } from "discord.js";
 import { issueCommand } from "./index";
 import * as issue from "./issue";
 import { fakeInteraction, fakeUser } from "../../test/discord";
@@ -14,6 +14,10 @@ const searchIssuesOnGithub = spyOn(issue, "searchIssuesOnGithub").mockResolvedVa
 beforeEach(() => {
     createIssueOnGithub.mockClear()
     searchIssuesOnGithub.mockClear()
+})
+
+afterEach(() => {
+    delete process.env.GITHUB_ISSUE_CREATOR_ROLE_ID
 })
 
 afterAll(() => {
@@ -53,5 +57,44 @@ describe("/issue", () => {
         expect(searchIssuesOnGithub).toHaveBeenCalledWith("crash")
         expect(createIssueOnGithub).not.toHaveBeenCalled()
         expect(interaction.editReply).toHaveBeenCalledWith({ embeds: [searchEmbed] })
+    })
+
+    describe("with a creator role configured", () => {
+        const roleId = "123456789"
+        const createOptions = { subcommand: "create", strings: { title: "Crash on launch" } }
+
+        beforeEach(() => {
+            process.env.GITHUB_ISSUE_CREATOR_ROLE_ID = roleId
+        })
+
+        test("rejects members without the role", async () => {
+            const interaction = fakeInteraction({ ...createOptions, member: { roles: ["987654321"] } })
+
+            await issueCommand.execute(interaction)
+
+            expect(createIssueOnGithub).not.toHaveBeenCalled()
+            expect(interaction.deferReply).not.toHaveBeenCalled()
+
+            const reply = interaction.reply.mock.calls[0]?.[0] as any
+            expect(reply.flags).toBe(MessageFlags.Ephemeral)
+            expect(reply.embeds[0].data.color).toBe(Colors.Red)
+        })
+
+        // Role matching itself is covered in utils/permissions.test.ts
+        test("allows members with the role", async () => {
+            const interaction = fakeInteraction({ ...createOptions, member: { roles: [roleId] } })
+
+            await issueCommand.execute(interaction)
+
+            expect(createIssueOnGithub).toHaveBeenCalled()
+        })
+
+        test("still lets anyone search", async () => {
+            const interaction = fakeInteraction({ subcommand: "search", strings: { query: "crash" } })
+
+            await issueCommand.execute(interaction)
+
+            expect(searchIssuesOnGithub).toHaveBeenCalledWith("crash")
+        })
     })
 })
