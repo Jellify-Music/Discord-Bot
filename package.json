@@ -12,9 +12,10 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "discord.js": "14.26.3",
-    "internetarchive-sdk-js": "1.0.45",
-    "openai": "6.34.0"
+    "discord.js": "14.28.1",
+    "internetarchive-sdk-js": "1.0.48",
+    "octokit": "5.0.5",
+    "openai": "7.55.0"
   },
   "scripts": {
     "start": "bun run index.ts",
