@@ -19,6 +19,7 @@
   },
   "scripts": {
     "start": "bun run index.ts",
+    "test": "bun test",
     "patch-package": "patch-package"
   },
   "postinstall": "patch-package"

@@ -44,6 +44,19 @@ export default commands;
 
 4. **Test your command in Discord!**
 
+## Running Tests
+
+Tests use Bun's built-in test runner (`bun:test`) and live next to the code they cover as `*.test.ts` files.
+
+```sh
+bun test           # run all tests
+bun test --watch   # re-run on changes
+```
+
+- Use `fakeInteraction()` and `fakeUser()` from `src/test/discord.ts` to call a command's `execute` without connecting to Discord.
+- Mock external APIs (GitHub, OpenAI, etc.) so tests never make network calls. See `src/commands/github/issue.test.ts`.
+- Bun runs every test file in a single process, and `mock.module()` mocks can't be undone. Only use `mock.module()` for third-party packages. For the project's own modules, use `spyOn()` and call `mockRestore()` afterwards so the mock doesn't leak into other test files.
+
 ## Coding Style
 - Use TypeScript and follow the patterns in existing commands.
 - Use the `SlashCommand` type for strong typing and autocompletion.
