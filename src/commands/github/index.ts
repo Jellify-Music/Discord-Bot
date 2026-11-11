@@ -1,44 +1,57 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { createIssueOnGithub } from "./issue";
+import { createIssueOnGithub, searchIssuesOnGithub } from "./issue";
 import type { SlashCommand } from "../../types/command";
 
-
-export const issue: SlashCommand = {
+/**
+ * Handles the `/issue` command for searching and creating GitHub issues.
+ */
+export const issueCommand: SlashCommand = {
     data: new SlashCommandBuilder()
-        .setName('create-issue')
-        .setDescription("Creates an issue on GitHub")
-        .addSubcommand(subCommand => 
+        .setName('issue')
+        .setDescription("Search for or create issues on GitHub")
+        .addSubcommand(subCommand =>
             subCommand
                 .setName('search')
                 .setDescription('Search for an issue')
-                .addStringOption((input) => 
-                    input
-                        .setName('search')
+                .addStringOption((option) =>
+                    option
+                        .setName('query')
+                        .setDescription('What to search for')
+                        .setRequired(true)
                 )
         )
-        .addSubcommand(subCommand => 
+        .addSubcommand(subCommand =>
             subCommand
-                .setName('create a new issue')
+                .setName('create')
                 .setDescription('Creates a new issue on GitHub')
-                .addStringOption((option) => 
-                    option.setName('title')
-                    .setDescription('The title for this issue')
+                .addStringOption((option) =>
+                    option
+                        .setName('title')
+                        .setDescription('The title for this issue')
+                        .setRequired(true)
+                        .setMaxLength(256)
                 )
-                .addStringOption((option) => 
+                .addStringOption((option) =>
                     option
                         .setName('description')
-                        .setDescription
+                        .setDescription('A description of the issue')
                 )
         ),
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply();
 
-        const result = await createIssueOnGithub()
+        const embed = interaction.options.getSubcommand() === 'create'
+            ? await createIssueOnGithub(
+                interaction.options.getString('title', true),
+                interaction.options.getString('description'),
+                interaction.user
+            )
+            : await searchIssuesOnGithub(interaction.options.getString('query', true))
 
         if (interaction.replied) {
             return
         }
 
-        await interaction.editReply(result);
+        await interaction.editReply({ embeds: [embed] });
     }
 }
