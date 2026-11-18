@@ -32,6 +32,7 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
+            type=sha
           labels: |
             org.opencontainers.image.title=discord-bot
             org.opencontainers.image.description=Jellify Discord bot
