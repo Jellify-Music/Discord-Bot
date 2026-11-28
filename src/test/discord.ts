@@ -25,6 +25,7 @@ export function fakeInteraction({ subcommand, strings = {}, user = fakeUser(), m
     const interaction = {
         user,
         member,
+        deferred: false,
         replied: false,
         deferReply: mock(async () => {}),
         reply: mock(async (_options: unknown) => {}),

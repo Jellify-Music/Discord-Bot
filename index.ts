@@ -2,6 +2,7 @@
 import { Client, GatewayIntentBits, REST, Routes, type Interaction, Collection } from "discord.js";
 import type { SlashCommand } from "./src/types/command";
 import commandsArray from "./src/commands";
+import { reportCommandError } from "./src/utils/interaction";
 
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.DISCORD_CLIENT_ID;
@@ -61,7 +62,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: "There was an error executing that command!", ephemeral: true });
+    await reportCommandError(interaction);
   }
 });
 
